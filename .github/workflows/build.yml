@@ -6,22 +6,12 @@ jobs:
     name: Build
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-10.15]
-        cc: [gcc, clang]
-        exclude:
-          - os: macos-10.15
-            cc: gcc
+        os: [ubuntu-20.04]
+        cc: [gcc]
     runs-on: ${{matrix.os}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Dependencies (Homebrew)
-        if: startswith(matrix.os, 'macos-')
-        run: |
-          brew install \
-            libao ffmpeg libcddb libcdio libcue libdiscid faad2 flac jack mad \
-            libmodplug mp4v2 musepack opusfile libsamplerate libvorbis wavpack \
-            pkg-config
       - name: Dependencies (apt)
         if: startswith(matrix.os, 'ubuntu-')
         run: |
@@ -35,7 +25,8 @@ jobs:
             libsndio-dev libvorbis-dev libwavpack-dev libsystemd-dev pkg-config
       - name: Build
         run: |
-          ./configure CC="${{matrix.cc}}"
+          ./configure CFLAGS="-march=haswell -O2 -mfpmath=sse -ftree-vectorize" CC="${{matrix.cc}}"
+          make -n
           make
       - name: Run
         run: |
